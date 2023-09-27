@@ -1,0 +1,243 @@
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Erreur de syntaxe dans l'instruction SQL "WITH CTE_TRANCHES AS  (SELECT T.DEAL_ID AS TRANCHES_DEAL_ID, STRING_AGG(T.CURRENCY || '@' || T.AMOUNT || '@'  || PRODUCTS.NAME || '@' || T.TERM:[*]REAL || T.TERM_UNIT_TYPE, '||')  AS TRANCHES_DETAILS FROM LDT.LDT.TRANCHES T 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = T.PRODUCT_CODE 
+GROUP BY T.DEAL_ID), 
+ CTE_DEALS_WITHOUT_BORROWERS AS 
+(SELECT DISTINCT DEAL.ID AS DEAL_ID_NO_BORROWER FROM LDT.LDT.DEALS DEAL  WHERE NOT EXISTS (SELECT DA.DEAL_ID FROM LDT.LDT.DEALS_ACTORS DA 
+ INNER JOIN LDT.LDT.DEALS_ACTORS_ROLES DAR ON DAR.DEAL_ACTOR_ID = DA.ID WHERE DA.DEAL_ID = DEAL.ID AND DAR.ROLE_CODE = 'BORROWER')) 
+SELECT CONCAT('LDT-', DEAL.ID) AS ""ID Deal"", PL.NAME AS ""CACIB organisation - Product Line"", DEAL.REGION AS ""Region"", DEAL.COUNTRY AS ""Deal country"", F.BOOKING_DATE AS ""Credit Agreement Signing"",
+(SELECT STATUS_NAME AS ""Deal Status"" FROM ( SELECT STATUS_NAME, CASE WHEN STATUS_VALUE > 0 THEN STATUS_VALUE WHEN STATUS_VALUE = 0 THEN 100 ELSE STATUS_VALUE + 200 END AS STATUS_VALUE FROM ( SELECT STA.CODE AS STATUS_CODE, STA.""value"" AS STATUS_VALUE, STA.NAME AS STATUS_NAME FROM LDT.LDT.DEALS_STATUSES DSTA, LDT.LDT.STATUSES STA WHERE DSTA.DEAL_ID = DEAL.ID AND DSTA.STATUS_CODE = STA.CODE GROUP BY DEAL.ID, STA.NAME, STA.CODE, STA.""value"" ) AS SUBQUERY ORDER BY STATUS_VALUE DESC LIMIT 1 ) AS SUBQUERY),
+ A.NAME AS ""CPH Borrower Name"", DEAL.CURRENCY AS ""Deal Currency"", F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING AS ""Deal Global Facility Amount At Signing""
+, STRING_AGG(PRODUCTS.NAME, '||') AS ""Deal Product"", STRING_AGG(MRS.NAME, '||') AS ""Deal Title"", STRING_AGG(TT.NAME, '||') AS ""Deal Role"",
+UF.NAME AS ""Deal Use of funds"", DEAL.BUSINESS_SECTOR_ID AS ""Business Sector"", TRANCHES_DETAILS.TRANCHES_DETAILS AS ""First Tranches Details 4"", 
+'' AS ""Additionnal information >>>"",  MS.NAME AS ""Distribution Segment"",  STRING_AGG(T.NAME , '||') AS ""Origination Team"", CASE WHEN DEAL.SUSTAINIBILITY_LINKED THEN 'Yes' ELSE 'No' END AS ""Sustainability linked Loan (ESG index)"", CASE WHEN DEAL.GREEN  THEN 'Yes' ELSE 'No' END  AS ""Green Loan"" , CASE WHEN DEAL.ELIGIBLE_TO_LEAGUE_TABLE  THEN 'Yes' ELSE 'No' END  AS ""Eligible to League Tables (Bookrunner)"",
+ TRANCHES_DETAILS.TRANCHES_DETAILS AS ""Other Tranches Details 7"", DEAL.CONFIDENTIALITYLEVEL_CODE AS ""Confidentiality level"", DEAL.FILE_NAME AS ""fileName""
+FROM LDT.LDT.DEALS DEAL 
+INNER JOIN LDT.LDT.DEALS_ACTORS DAC ON DAC.DEAL_ID = DEAL.ID 
+ INNER JOIN LDT.LDT.DEALS_ACTORS_ROLES DAR ON DAR.DEAL_ACTOR_ID = DAC.ID AND DAR.ROLE_CODE = 'BORROWER' 
+INNER JOIN LDT.LDT.ACTORS A ON A.ID = DAC.ACTOR_ID 
+INNER JOIN LDT.LDT.DEALS_STATUSES DST ON DST.DEAL_ID = DEAL.ID 
+INNER JOIN LDT.LDT.STATUSES S ON DST.STATUS_CODE = S.CODE 
+LEFT OUTER JOIN LDT.LDT.MARKET_SEGMENTS MS ON MS.ID = DEAL.MARKET_SEGMENT_ID 
+LEFT OUTER JOIN LDT.LDT.FINALIZATIONS F ON F.DEAL_ID = DEAL.ID AND F.ACTIVE = TRUE 
+LEFT OUTER JOIN CTE_TRANCHES TRANCHES_DETAILS ON TRANCHES_DETAILS.TRANCHES_DEAL_ID = DEAL.ID
+LEFT OUTER JOIN LDT.LDT.DEALS_ORIGINATION_TEAMS OT ON OT.DEALS_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.TEAMS T ON T.CODE = OT.ORIGINATIONTEAMS_CODE  
+LEFT OUTER JOIN LDT.LDT.STATES STT ON STT.CODE = DEAL.STATE_CODE 
+LEFT OUTER JOIN LDT.LDT.PRODUCT_LINES PL ON PL.ID = DEAL.PRODUCT_LINE_ID 
+LEFT OUTER JOIN LDT.LDT.CREDIT_COMMITTEES CC ON CC.DEAL_ID = DEAL.ID AND CC.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.TRANCHES TRANCHES ON TRANCHES.DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = TRANCHES.PRODUCT_CODE 
+LEFT OUTER JOIN LDT.LDT.USES_OF_FUNDS UF ON UF.CODE = DEAL.USEOFFUNDS_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATES M ON M.DEAL_ID = DEAL.ID AND M.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.MANDATES_ROLES MR ON M.ID = MR.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.MANDATES_TITLES MT ON M.ID = MT.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.TITLES TT ON TT.CODE = MT.TITLES_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATE_ROLES MRS ON MRS.CODE = MR.ROLES_CODE 
+WHERE DST.LAST_MODIFIED_DATE = (SELECT MAX(DTT1.LAST_MODIFIED_DATE ) FROM LDT.LDT.DEALS_STATUSES DTT1 WHERE DTT1.DEAL_ID = DEAL.ID) 
+GROUP BY DEAL.ID, MS.NAME, UF.NAME , STT.NAME ,DEAL.BUSINESS_SECTOR_ID, PL.NAME, DEAL.REGION, DEAL.COUNTRY,
+F.BOOKING_DATE, A.NAME, DEAL.CURRENCY, F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING, TRANCHES_DETAILS.TRANCHES_DETAILS, DST.STATUS_CODE, S.NAME
+ UNION 
+SELECT CONCAT('LDT-', DEAL.ID) AS ""ID Deal"", PL.NAME AS ""CACIB organisation - Product Line"", DEAL.REGION AS ""Region"", DEAL.COUNTRY AS ""Deal country"", F.BOOKING_DATE AS ""Credit Agreement Signing"",
+(SELECT STATUS_NAME AS ""Deal Status"" FROM ( SELECT STATUS_NAME, CASE WHEN STATUS_VALUE > 0 THEN STATUS_VALUE WHEN STATUS_VALUE = 0 THEN 100 ELSE STATUS_VALUE + 200 END AS STATUS_VALUE FROM ( SELECT STA.CODE AS STATUS_CODE, STA.""value"" AS STATUS_VALUE, STA.NAME AS STATUS_NAME FROM LDT.LDT.DEALS_STATUSES DSTA, LDT.LDT.STATUSES STA WHERE DSTA.DEAL_ID = DEAL.ID AND DSTA.STATUS_CODE = STA.CODE GROUP BY DEAL.ID, STA.NAME, STA.CODE, STA.""value"" ) AS SUBQUERY ORDER BY STATUS_VALUE DESC LIMIT 1 ) AS SUBQUERY)
+, '', DEAL.CURRENCY AS ""Deal Currency"", F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING AS ""Deal Global Facility Amount At Signing""
+, STRING_AGG(PRODUCTS.NAME, '||') AS ""Deal Product"", STRING_AGG(MRS.NAME, '||') AS ""Deal Title"", STRING_AGG(TT.NAME, '||') AS ""Deal Role"",
+UF.NAME AS ""Deal Use of funds"", DEAL.BUSINESS_SECTOR_ID AS ""Business Sector"", TRANCHES_DETAILS.TRANCHES_DETAILS AS ""First Tranches Details 4"", 
+'' AS ""Additionnal information >>>"",  MS.NAME AS ""Distribution Segment"",  STRING_AGG(T.NAME , '||') AS ""Origination Team"", CASE WHEN DEAL.SUSTAINIBILITY_LINKED THEN 'Yes' ELSE 'No' END AS ""Sustainability linked Loan (ESG index)"", CASE WHEN DEAL.GREEN  THEN 'Yes' ELSE 'No' END  AS ""Green Loan"" , CASE WHEN DEAL.ELIGIBLE_TO_LEAGUE_TABLE  THEN 'Yes' ELSE 'No' END  AS ""Eligible to League Tables (Bookrunner)"",
+ TRANCHES_DETAILS.TRANCHES_DETAILS AS ""Other Tranches Details 7"", DEAL.CONFIDENTIALITYLEVEL_CODE AS ""Confidentiality level"", DEAL.FILE_NAME AS ""fileName""
+FROM LDT.LDT.DEALS DEAL 
+INNER JOIN CTE_DEALS_WITHOUT_BORROWERS ON DEAL.ID = CTE_DEALS_WITHOUT_BORROWERS.DEAL_ID_NO_BORROWER 
+ INNER JOIN LDT.LDT.DEALS_STATUSES DST ON DST.DEAL_ID = DEAL.ID 
+ INNER JOIN LDT.LDT.STATUSES S ON DST.STATUS_CODE = S.CODE 
+LEFT OUTER JOIN LDT.LDT.MARKET_SEGMENTS MS ON MS.ID = DEAL.MARKET_SEGMENT_ID 
+LEFT OUTER JOIN LDT.LDT.FINALIZATIONS F ON F.DEAL_ID = DEAL.ID AND F.ACTIVE = TRUE 
+LEFT OUTER JOIN CTE_TRANCHES TRANCHES_DETAILS ON TRANCHES_DETAILS.TRANCHES_DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.DEALS_ORIGINATION_TEAMS OT ON OT.DEALS_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.TEAMS T ON T.CODE = OT.ORIGINATIONTEAMS_CODE  
+LEFT OUTER JOIN LDT.LDT.STATES STT ON STT.CODE = DEAL.STATE_CODE 
+LEFT OUTER JOIN LDT.LDT.PRODUCT_LINES PL ON PL.ID = DEAL.PRODUCT_LINE_ID 
+LEFT OUTER JOIN LDT.LDT.CREDIT_COMMITTEES CC ON CC.DEAL_ID = DEAL.ID AND CC.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.TRANCHES TRANCHES ON TRANCHES.DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = TRANCHES.PRODUCT_CODE 
+LEFT OUTER JOIN LDT.LDT.USES_OF_FUNDS UF ON UF.CODE = DEAL.USEOFFUNDS_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATES M ON M.DEAL_ID = DEAL.ID AND M.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.MANDATES_ROLES MR ON M.ID = MR.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.MANDATES_TITLES MT ON M.ID = MT.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.TITLES TT ON TT.CODE = MT.TITLES_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATE_ROLES MRS ON MRS.CODE = MR.ROLES_CODE 
+WHERE DST.LAST_MODIFIED_DATE = (SELECT MAX(DTT1.LAST_MODIFIED_DATE ) FROM LDT.LDT.DEALS_STATUSES DTT1 WHERE DTT1.DEAL_ID = DEAL.ID) 
+GROUP BY DEAL.ID, MS.NAME, UF.NAME , STT.NAME ,DEAL.BUSINESS_SECTOR_ID, PL.NAME, DEAL.REGION, DEAL.COUNTRY,
+F.BOOKING_DATE, DEAL.CURRENCY, F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING, TRANCHES_DETAILS.TRANCHES_DETAILS, DST.STATUS_CODE, S.NAME"; attendu "(, ., [, ::, AT, FORMAT, *, /, %, +, -, ||, ~, !~, NOT, LIKE, ILIKE, REGEXP, IS, IN, BETWEEN, AND, OR, ,"
+Syntax error in SQL statement "WITH CTE_TRANCHES AS  (SELECT T.DEAL_ID AS TRANCHES_DEAL_ID, STRING_AGG(T.CURRENCY || '@' || T.AMOUNT || '@'  || PRODUCTS.NAME || '@' || T.TERM:[*]REAL || T.TERM_UNIT_TYPE, '||')  AS TRANCHES_DETAILS FROM LDT.LDT.TRANCHES T 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = T.PRODUCT_CODE 
+GROUP BY T.DEAL_ID), 
+ CTE_DEALS_WITHOUT_BORROWERS AS 
+(SELECT DISTINCT DEAL.ID AS DEAL_ID_NO_BORROWER FROM LDT.LDT.DEALS DEAL  WHERE NOT EXISTS (SELECT DA.DEAL_ID FROM LDT.LDT.DEALS_ACTORS DA 
+ INNER JOIN LDT.LDT.DEALS_ACTORS_ROLES DAR ON DAR.DEAL_ACTOR_ID = DA.ID WHERE DA.DEAL_ID = DEAL.ID AND DAR.ROLE_CODE = 'BORROWER')) 
+SELECT CONCAT('LDT-', DEAL.ID) AS ""ID Deal"", PL.NAME AS ""CACIB organisation - Product Line"", DEAL.REGION AS ""Region"", DEAL.COUNTRY AS ""Deal country"", F.BOOKING_DATE AS ""Credit Agreement Signing"",
+(SELECT STATUS_NAME AS ""Deal Status"" FROM ( SELECT STATUS_NAME, CASE WHEN STATUS_VALUE > 0 THEN STATUS_VALUE WHEN STATUS_VALUE = 0 THEN 100 ELSE STATUS_VALUE + 200 END AS STATUS_VALUE FROM ( SELECT STA.CODE AS STATUS_CODE, STA.""value"" AS STATUS_VALUE, STA.NAME AS STATUS_NAME FROM LDT.LDT.DEALS_STATUSES DSTA, LDT.LDT.STATUSES STA WHERE DSTA.DEAL_ID = DEAL.ID AND DSTA.STATUS_CODE = STA.CODE GROUP BY DEAL.ID, STA.NAME, STA.CODE, STA.""value"" ) AS SUBQUERY ORDER BY STATUS_VALUE DESC LIMIT 1 ) AS SUBQUERY),
+ A.NAME AS ""CPH Borrower Name"", DEAL.CURRENCY AS ""Deal Currency"", F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING AS ""Deal Global Facility Amount At Signing""
+, STRING_AGG(PRODUCTS.NAME, '||') AS ""Deal Product"", STRING_AGG(MRS.NAME, '||') AS ""Deal Title"", STRING_AGG(TT.NAME, '||') AS ""Deal Role"",
+UF.NAME AS ""Deal Use of funds"", DEAL.BUSINESS_SECTOR_ID AS ""Business Sector"", TRANCHES_DETAILS.TRANCHES_DETAILS AS ""First Tranches Details 4"", 
+'' AS ""Additionnal information >>>"",  MS.NAME AS ""Distribution Segment"",  STRING_AGG(T.NAME , '||') AS ""Origination Team"", CASE WHEN DEAL.SUSTAINIBILITY_LINKED THEN 'Yes' ELSE 'No' END AS ""Sustainability linked Loan (ESG index)"", CASE WHEN DEAL.GREEN  THEN 'Yes' ELSE 'No' END  AS ""Green Loan"" , CASE WHEN DEAL.ELIGIBLE_TO_LEAGUE_TABLE  THEN 'Yes' ELSE 'No' END  AS ""Eligible to League Tables (Bookrunner)"",
+ TRANCHES_DETAILS.TRANCHES_DETAILS AS ""Other Tranches Details 7"", DEAL.CONFIDENTIALITYLEVEL_CODE AS ""Confidentiality level"", DEAL.FILE_NAME AS ""fileName""
+FROM LDT.LDT.DEALS DEAL 
+INNER JOIN LDT.LDT.DEALS_ACTORS DAC ON DAC.DEAL_ID = DEAL.ID 
+ INNER JOIN LDT.LDT.DEALS_ACTORS_ROLES DAR ON DAR.DEAL_ACTOR_ID = DAC.ID AND DAR.ROLE_CODE = 'BORROWER' 
+INNER JOIN LDT.LDT.ACTORS A ON A.ID = DAC.ACTOR_ID 
+INNER JOIN LDT.LDT.DEALS_STATUSES DST ON DST.DEAL_ID = DEAL.ID 
+INNER JOIN LDT.LDT.STATUSES S ON DST.STATUS_CODE = S.CODE 
+LEFT OUTER JOIN LDT.LDT.MARKET_SEGMENTS MS ON MS.ID = DEAL.MARKET_SEGMENT_ID 
+LEFT OUTER JOIN LDT.LDT.FINALIZATIONS F ON F.DEAL_ID = DEAL.ID AND F.ACTIVE = TRUE 
+LEFT OUTER JOIN CTE_TRANCHES TRANCHES_DETAILS ON TRANCHES_DETAILS.TRANCHES_DEAL_ID = DEAL.ID
+LEFT OUTER JOIN LDT.LDT.DEALS_ORIGINATION_TEAMS OT ON OT.DEALS_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.TEAMS T ON T.CODE = OT.ORIGINATIONTEAMS_CODE  
+LEFT OUTER JOIN LDT.LDT.STATES STT ON STT.CODE = DEAL.STATE_CODE 
+LEFT OUTER JOIN LDT.LDT.PRODUCT_LINES PL ON PL.ID = DEAL.PRODUCT_LINE_ID 
+LEFT OUTER JOIN LDT.LDT.CREDIT_COMMITTEES CC ON CC.DEAL_ID = DEAL.ID AND CC.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.TRANCHES TRANCHES ON TRANCHES.DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = TRANCHES.PRODUCT_CODE 
+LEFT OUTER JOIN LDT.LDT.USES_OF_FUNDS UF ON UF.CODE = DEAL.USEOFFUNDS_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATES M ON M.DEAL_ID = DEAL.ID AND M.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.MANDATES_ROLES MR ON M.ID = MR.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.MANDATES_TITLES MT ON M.ID = MT.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.TITLES TT ON TT.CODE = MT.TITLES_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATE_ROLES MRS ON MRS.CODE = MR.ROLES_CODE 
+WHERE DST.LAST_MODIFIED_DATE = (SELECT MAX(DTT1.LAST_MODIFIED_DATE ) FROM LDT.LDT.DEALS_STATUSES DTT1 WHERE DTT1.DEAL_ID = DEAL.ID) 
+GROUP BY DEAL.ID, MS.NAME, UF.NAME , STT.NAME ,DEAL.BUSINESS_SECTOR_ID, PL.NAME, DEAL.REGION, DEAL.COUNTRY,
+F.BOOKING_DATE, A.NAME, DEAL.CURRENCY, F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING, TRANCHES_DETAILS.TRANCHES_DETAILS, DST.STATUS_CODE, S.NAME
+ UNION 
+SELECT CONCAT('LDT-', DEAL.ID) AS ""ID Deal"", PL.NAME AS ""CACIB organisation - Product Line"", DEAL.REGION AS ""Region"", DEAL.COUNTRY AS ""Deal country"", F.BOOKING_DATE AS ""Credit Agreement Signing"",
+(SELECT STATUS_NAME AS ""Deal Status"" FROM ( SELECT STATUS_NAME, CASE WHEN STATUS_VALUE > 0 THEN STATUS_VALUE WHEN STATUS_VALUE = 0 THEN 100 ELSE STATUS_VALUE + 200 END AS STATUS_VALUE FROM ( SELECT STA.CODE AS STATUS_CODE, STA.""value"" AS STATUS_VALUE, STA.NAME AS STATUS_NAME FROM LDT.LDT.DEALS_STATUSES DSTA, LDT.LDT.STATUSES STA WHERE DSTA.DEAL_ID = DEAL.ID AND DSTA.STATUS_CODE = STA.CODE GROUP BY DEAL.ID, STA.NAME, STA.CODE, STA.""value"" ) AS SUBQUERY ORDER BY STATUS_VALUE DESC LIMIT 1 ) AS SUBQUERY)
+, '', DEAL.CURRENCY AS ""Deal Currency"", F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING AS ""Deal Global Facility Amount At Signing""
+, STRING_AGG(PRODUCTS.NAME, '||') AS ""Deal Product"", STRING_AGG(MRS.NAME, '||') AS ""Deal Title"", STRING_AGG(TT.NAME, '||') AS ""Deal Role"",
+UF.NAME AS ""Deal Use of funds"", DEAL.BUSINESS_SECTOR_ID AS ""Business Sector"", TRANCHES_DETAILS.TRANCHES_DETAILS AS ""First Tranches Details 4"", 
+'' AS ""Additionnal information >>>"",  MS.NAME AS ""Distribution Segment"",  STRING_AGG(T.NAME , '||') AS ""Origination Team"", CASE WHEN DEAL.SUSTAINIBILITY_LINKED THEN 'Yes' ELSE 'No' END AS ""Sustainability linked Loan (ESG index)"", CASE WHEN DEAL.GREEN  THEN 'Yes' ELSE 'No' END  AS ""Green Loan"" , CASE WHEN DEAL.ELIGIBLE_TO_LEAGUE_TABLE  THEN 'Yes' ELSE 'No' END  AS ""Eligible to League Tables (Bookrunner)"",
+ TRANCHES_DETAILS.TRANCHES_DETAILS AS ""Other Tranches Details 7"", DEAL.CONFIDENTIALITYLEVEL_CODE AS ""Confidentiality level"", DEAL.FILE_NAME AS ""fileName""
+FROM LDT.LDT.DEALS DEAL 
+INNER JOIN CTE_DEALS_WITHOUT_BORROWERS ON DEAL.ID = CTE_DEALS_WITHOUT_BORROWERS.DEAL_ID_NO_BORROWER 
+ INNER JOIN LDT.LDT.DEALS_STATUSES DST ON DST.DEAL_ID = DEAL.ID 
+ INNER JOIN LDT.LDT.STATUSES S ON DST.STATUS_CODE = S.CODE 
+LEFT OUTER JOIN LDT.LDT.MARKET_SEGMENTS MS ON MS.ID = DEAL.MARKET_SEGMENT_ID 
+LEFT OUTER JOIN LDT.LDT.FINALIZATIONS F ON F.DEAL_ID = DEAL.ID AND F.ACTIVE = TRUE 
+LEFT OUTER JOIN CTE_TRANCHES TRANCHES_DETAILS ON TRANCHES_DETAILS.TRANCHES_DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.DEALS_ORIGINATION_TEAMS OT ON OT.DEALS_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.TEAMS T ON T.CODE = OT.ORIGINATIONTEAMS_CODE  
+LEFT OUTER JOIN LDT.LDT.STATES STT ON STT.CODE = DEAL.STATE_CODE 
+LEFT OUTER JOIN LDT.LDT.PRODUCT_LINES PL ON PL.ID = DEAL.PRODUCT_LINE_ID 
+LEFT OUTER JOIN LDT.LDT.CREDIT_COMMITTEES CC ON CC.DEAL_ID = DEAL.ID AND CC.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.TRANCHES TRANCHES ON TRANCHES.DEAL_ID = DEAL.ID 
+LEFT OUTER JOIN LDT.LDT.PRODUCTS PRODUCTS ON PRODUCTS.CODE = TRANCHES.PRODUCT_CODE 
+LEFT OUTER JOIN LDT.LDT.USES_OF_FUNDS UF ON UF.CODE = DEAL.USEOFFUNDS_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATES M ON M.DEAL_ID = DEAL.ID AND M.ACTIVE = TRUE 
+LEFT OUTER JOIN LDT.LDT.MANDATES_ROLES MR ON M.ID = MR.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.MANDATES_TITLES MT ON M.ID = MT.MANDATES_ID 
+LEFT OUTER JOIN LDT.LDT.TITLES TT ON TT.CODE = MT.TITLES_CODE 
+LEFT OUTER JOIN LDT.LDT.MANDATE_ROLES MRS ON MRS.CODE = MR.ROLES_CODE 
+WHERE DST.LAST_MODIFIED_DATE = (SELECT MAX(DTT1.LAST_MODIFIED_DATE ) FROM LDT.LDT.DEALS_STATUSES DTT1 WHERE DTT1.DEAL_ID = DEAL.ID) 
+GROUP BY DEAL.ID, MS.NAME, UF.NAME , STT.NAME ,DEAL.BUSINESS_SECTOR_ID, PL.NAME, DEAL.REGION, DEAL.COUNTRY,
+F.BOOKING_DATE, DEAL.CURRENCY, F.GLOBAL_FACILITY_AMOUNT_AT_SIGNING, TRANCHES_DETAILS.TRANCHES_DETAILS, DST.STATUS_CODE, S.NAME"; expected "(, ., [, ::, AT, FORMAT, *, /, %, +, -, ||, ~, !~, NOT, LIKE, ILIKE, REGEXP, IS, IN, BETWEEN, AND, OR, ,"; SQL statement:
+WITH cte_tranches AS  (select t.deal_id as tranches_deal_id, STRING_AGG(t.currency || '@' || t.amount || '@'  || products.name || '@' || t.term:REAL || t.term_unit_type, '||')  as tranches_details from ldt.ldt.tranches t 
+left outer join ldt.ldt.products products on products.code = t.product_code 
+group by t.deal_id), 
+ cte_deals_without_borrowers AS 
+(select distinct deal.id as deal_id_no_borrower from ldt.ldt.deals deal  where not exists (select da.deal_id from ldt.ldt.deals_actors da 
+ inner join ldt.ldt.deals_actors_roles dar on dar.deal_actor_id = da.id where da.deal_id = deal.id and dar.role_code = 'BORROWER')) 
+select concat('LDT-', deal.id) as "ID Deal", pl.name as "CACIB organisation - Product Line", deal.region as "Region", deal.country as "Deal country", f.booking_date as "Credit Agreement Signing",
+(select status_name as "Deal Status" from ( select status_name, case when status_value > 0 then status_value when status_value = 0 then 100 else status_value + 200 end as status_value from ( select sta.code as status_code, sta."value" as status_value, sta.name as status_name from ldt.ldt.deals_statuses dsta, ldt.ldt.statuses sta where dsta.deal_id = deal.id and dsta.status_code = sta.code group by deal.id, sta.name, sta.code, sta."value" ) as subquery order by status_value desc limit 1 ) as subquery),
+ a.name as "CPH Borrower Name", deal.currency as "Deal Currency", f.global_facility_amount_at_signing as "Deal Global Facility Amount At Signing"
+, STRING_AGG(products.name, '||') as "Deal Product", STRING_AGG(mrs.name, '||') as "Deal Title", STRING_AGG(tt.name, '||') as "Deal Role",
+uf.name as "Deal Use of funds", deal.business_sector_id as "Business Sector", tranches_details.tranches_details as "First Tranches Details 4", 
+'' as "Additionnal information >>>",  ms.name as "Distribution Segment",  STRING_AGG(t.name , '||') as "Origination Team", Case When deal.sustainibility_linked Then 'Yes' Else 'No' End as "Sustainability linked Loan (ESG index)", Case When deal.green  Then 'Yes' Else 'No' End  as "Green Loan" , Case When deal.eligible_to_league_table  Then 'Yes' Else 'No' End  as "Eligible to League Tables (Bookrunner)",
+ tranches_details.tranches_details as "Other Tranches Details 7", deal.confidentialitylevel_code as "Confidentiality level", deal.file_name as "fileName"
+from ldt.ldt.deals deal 
+inner join ldt.ldt.deals_actors dac on dac.deal_id = deal.id 
+ inner join ldt.ldt.deals_actors_roles dar on dar.deal_actor_id = dac.id and dar.role_code = 'BORROWER' 
+inner join ldt.ldt.actors a on a.id = dac.actor_id 
+inner join ldt.ldt.deals_statuses dst on dst.deal_id = deal.id 
+inner join ldt.ldt.statuses s on dst.status_code = s.code 
+left outer join ldt.ldt.market_segments ms on ms.id = deal.market_segment_id 
+left outer join ldt.ldt.finalizations f on f.deal_id = deal.id and f.active = true 
+left outer join cte_tranches tranches_details on tranches_details.tranches_deal_id = deal.id
+left outer join ldt.ldt.deals_origination_teams ot on ot.deals_id = deal.id 
+left outer join ldt.ldt.teams t on t.code = ot.originationteams_code  
+left outer join ldt.ldt.states stt on stt.code = deal.state_code 
+left outer join ldt.ldt.product_lines pl on pl.id = deal.product_line_id 
+left outer join ldt.ldt.credit_committees cc on cc.deal_id = deal.id and cc.active = true 
+left outer join ldt.ldt.tranches tranches on tranches.deal_id = deal.id 
+left outer join ldt.ldt.products products on products.code = tranches.product_code 
+left outer join ldt.ldt.uses_of_funds uf on uf.code = deal.useoffunds_code 
+left outer join ldt.ldt.mandates m on m.deal_id = deal.id and m.active = true 
+left outer join ldt.ldt.mandates_roles mr on m.id = mr.mandates_id 
+left outer join ldt.ldt.mandates_titles mt on m.id = mt.mandates_id 
+left outer join ldt.ldt.titles tt on tt.code = mt.titles_code 
+left outer join ldt.ldt.mandate_roles mrs on mrs.code = mr.roles_code 
+where dst.last_modified_date = (select max(dtt1.last_modified_date ) from ldt.ldt.deals_statuses dtt1 where dtt1.deal_id = deal.id) 
+group by deal.id, ms.name, uf.name , stt.name ,deal.business_sector_id, pl.name, deal.region, deal.country,
+f.booking_date, a.name, deal.currency, f.global_facility_amount_at_signing, tranches_details.tranches_details, dst.status_code, s.name
+ UNION 
+select concat('LDT-', deal.id) as "ID Deal", pl.name as "CACIB organisation - Product Line", deal.region as "Region", deal.country as "Deal country", f.booking_date as "Credit Agreement Signing",
+(select status_name as "Deal Status" from ( select status_name, case when status_value > 0 then status_value when status_value = 0 then 100 else status_value + 200 end as status_value from ( select sta.code as status_code, sta."value" as status_value, sta.name as status_name from ldt.ldt.deals_statuses dsta, ldt.ldt.statuses sta where dsta.deal_id = deal.id and dsta.status_code = sta.code group by deal.id, sta.name, sta.code, sta."value" ) as subquery order by status_value desc limit 1 ) as subquery)
+, '', deal.currency as "Deal Currency", f.global_facility_amount_at_signing as "Deal Global Facility Amount At Signing"
+, STRING_AGG(products.name, '||') as "Deal Product", STRING_AGG(mrs.name, '||') as "Deal Title", STRING_AGG(tt.name, '||') as "Deal Role",
+uf.name as "Deal Use of funds", deal.business_sector_id as "Business Sector", tranches_details.tranches_details as "First Tranches Details 4", 
+'' as "Additionnal information >>>",  ms.name as "Distribution Segment",  STRING_AGG(t.name , '||') as "Origination Team", Case When deal.sustainibility_linked Then 'Yes' Else 'No' End as "Sustainability linked Loan (ESG index)", Case When deal.green  Then 'Yes' Else 'No' End  as "Green Loan" , Case When deal.eligible_to_league_table  Then 'Yes' Else 'No' End  as "Eligible to League Tables (Bookrunner)",
+ tranches_details.tranches_details as "Other Tranches Details 7", deal.confidentialitylevel_code as "Confidentiality level", deal.file_name as "fileName"
+from ldt.ldt.deals deal 
+inner join cte_deals_without_borrowers on deal.id = cte_deals_without_borrowers.deal_id_no_borrower 
+ inner join ldt.ldt.deals_statuses dst on dst.deal_id = deal.id 
+ inner join ldt.ldt.statuses s on dst.status_code = s.code 
+left outer join ldt.ldt.market_segments ms on ms.id = deal.market_segment_id 
+left outer join ldt.ldt.finalizations f on f.deal_id = deal.id and f.active = true 
+left outer join cte_tranches tranches_details on tranches_details.tranches_deal_id = deal.id 
+left outer join ldt.ldt.deals_origination_teams ot on ot.deals_id = deal.id 
+left outer join ldt.ldt.teams t on t.code = ot.originationteams_code  
+left outer join ldt.ldt.states stt on stt.code = deal.state_code 
+left outer join ldt.ldt.product_lines pl on pl.id = deal.product_line_id 
+left outer join ldt.ldt.credit_committees cc on cc.deal_id = deal.id and cc.active = true 
+left outer join ldt.ldt.tranches tranches on tranches.deal_id = deal.id 
+left outer join ldt.ldt.products products on products.code = tranches.product_code 
+left outer join ldt.ldt.uses_of_funds uf on uf.code = deal.useoffunds_code 
+left outer join ldt.ldt.mandates m on m.deal_id = deal.id and m.active = true 
+left outer join ldt.ldt.mandates_roles mr on m.id = mr.mandates_id 
+left outer join ldt.ldt.mandates_titles mt on m.id = mt.mandates_id 
+left outer join ldt.ldt.titles tt on tt.code = mt.titles_code 
+left outer join ldt.ldt.mandate_roles mrs on mrs.code = mr.roles_code 
+where dst.last_modified_date = (select max(dtt1.last_modified_date ) from ldt.ldt.deals_statuses dtt1 where dtt1.deal_id = deal.id) 
+group by deal.id, ms.name, uf.name , stt.name ,deal.business_sector_id, pl.name, deal.region, deal.country,
+f.booking_date, deal.currency, f.global_facility_amount_at_signing, tranches_details.tranches_details, dst.status_code, s.name [42001-200]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:453)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:429)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:243)
+	at org.h2.command.Parser.getSyntaxError(Parser.java:1053)
+	at org.h2.command.Parser.read(Parser.java:4995)
+	at org.h2.command.Parser.readAggregate(Parser.java:3383)
+	at org.h2.command.Parser.readFunction(Parser.java:3755)
+	at org.h2.command.Parser.readTerm(Parser.java:4305)
+	at org.h2.command.Parser.readFactor(Parser.java:3343)
+	at org.h2.command.Parser.readSum(Parser.java:3330)
+	at org.h2.command.Parser.readConcat(Parser.java:3305)
+	at org.h2.command.Parser.readCondition(Parser.java:3108)
+	at org.h2.command.Parser.readExpression(Parser.java:3059)
+	at org.h2.command.Parser.parseSelectExpressions(Parser.java:2931)
+	at org.h2.command.Parser.parseSelect(Parser.java:2952)
+	at org.h2.command.Parser.parseQuerySub(Parser.java:2817)
+	at org.h2.command.Parser.parseSelectUnion(Parser.java:2649)
+	at org.h2.command.Parser.parseQuery(Parser.java:2620)
+	at org.h2.command.Parser.parseSingleCommonTableExpression(Parser.java:6861)
+	at org.h2.command.Parser.parseWith1(Parser.java:6737)
+	at org.h2.command.Parser.parseWith(Parser.java:6722)
+	at org.h2.command.Parser.parseWithStatementOrQuery(Parser.java:2633)
+	at org.h2.command.Parser.parsePrepared(Parser.java:872)
+	at org.h2.command.Parser.parse(Parser.java:843)
+	at org.h2.command.Parser.parse(Parser.java:819)
+	at org.h2.command.Parser.prepareCommand(Parser.java:738)
+	at org.h2.engine.Session.prepareLocal(Session.java:657)
+	at org.h2.engine.Session.prepareCommand(Session.java:595)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1235)
+	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:76)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:352)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:337)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:149)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:176)
+	... 188 common frames omitted

@@ -1,1 +1,29 @@
 
+Je vois que vous avez utilisé des alias pour nommer les colonnes dans votre requête SQL. Voici les noms des colonnes résultantes basés sur les alias que vous avez définis dans votre requête :
+
+1. "ID Deal"
+2. "CACIB organisation - Product Line"
+3. "Region"
+4. "Deal country"
+5. "Credit Agreement Signing"
+6. "Deal Status"
+7. "CPH Borrower Name"
+8. "Deal Currency"
+9. "Deal Global Facility Amount At Signing"
+10. "Deal Product"
+11. "Deal Title"
+12. "Deal Role"
+13. "Deal Use of funds"
+14. "Business Sector"
+15. "First Tranches Details 4"
+16. "Additionnal information >>>"
+17. "Distribution Segment"
+18. "Origination Team"
+19. "Sustainability linked Loan (ESG index)"
+20. "Green Loan"
+21. "Eligible to League Tables (Bookrunner)"
+22. "Other Tranches Details 7"
+23. "Confidentiality level"
+24. "fileName"
+
+Ces noms de colonnes correspondent aux alias que vous avez spécifiés dans votre requête SQL. Veuillez noter que si vous avez des erreurs dans votre requête SQL qui empêchent l'exécution, les noms de colonnes ne seront pas pertinents tant que la requête ne renvoie pas de résultats. Assurez-vous que votre requête SQL est correcte et peut être exécutée avec succès dans votre base de données.
